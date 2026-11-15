@@ -22,3 +22,12 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Agentbluff
+node_modules/
+dist/
+.npm-cache/
+server/data/
+server/.env
+.codex-ui-extract/
+.claude/
