@@ -35,6 +35,7 @@ cp server/.env.example server/.env
 | `GAMES_PER_IP_PER_HOUR` | 3 | 每个 IP 每小时最多开几局 |
 | `GAMES_PER_DAY` | 50 | 全站每天最多开几局 |
 | `READING_MS_PER_CHAR` | 45 | 每条发言后按字数停顿，给观众阅读时间（每字毫秒，限制在 2.5–9 秒）；设为 0 则全速 |
+| `NIGHT_BEAT_MS` | 7000 | 夜间每一步之间的停顿（天黑请闭眼、狼刀、预言家、女巫、天亮、猎人），方便观战。设为 0 则夜间不等待；`READING_MS_PER_CHAR=0` 且未单独设置时也是 0 |
 
 每局的 token 用量记录在数据库 `games.prompt_tokens / completion_tokens`。
 

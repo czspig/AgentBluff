@@ -388,6 +388,122 @@
   to { stroke-dashoffset: 0; }
 }
 
+/* ---------- live utterance, laid on the inner tabletop ---------- */
+
+.hall-utterance {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  padding: 0.7em 0.95em 0.65em;
+  color: #3b2416;
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(12.5px, 1.45cqw, 17px);
+  line-height: 1.65;
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 250, 235, 0.75), transparent 58%),
+    radial-gradient(ellipse at 90% 100%, rgba(168, 124, 68, 0.16), transparent 55%),
+    linear-gradient(180deg, #f6edd8, #e7d3ae);
+  border: 1px solid #8a6a3e;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 248, 232, 0.9),
+    inset 0 0 0 5px rgba(231, 211, 174, 0.35),
+    inset 0 0 0 6px rgba(138, 106, 62, 0.55),
+    0 14px 30px rgba(0, 0, 0, 0.42);
+  animation: hall-utterance-in 0.4s ease-out;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.hall-utterance header {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4em 0.5em;
+  margin: 0 0 0.35em;
+  padding-bottom: 0.32em;
+  border-bottom: 1px solid rgba(122, 84, 46, 0.35);
+  font-family: "Instrument Serif", "Noto Serif SC", Georgia, serif;
+  font-size: 1.22em;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  color: #7a4e22;
+}
+
+.hall-utterance header::before,
+.hall-utterance header::after {
+  content: "";
+  width: 1.6em;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(138, 106, 62, 0.7));
+  align-self: center;
+}
+
+.hall-utterance header::after {
+  background: linear-gradient(90deg, rgba(138, 106, 62, 0.7), transparent);
+}
+
+.hall-utterance header span {
+  color: #a56b2e;
+}
+
+.hall-utterance header strong {
+  font-weight: 500;
+  color: #5c3716;
+}
+
+.hall-utterance header small {
+  font-family: "Noto Serif SC", serif;
+  font-size: 0.58em;
+  letter-spacing: 0.14em;
+  padding: 0.12em 0.45em;
+  border: 1px solid rgba(122, 84, 46, 0.4);
+  color: #6f5338;
+}
+
+.hall-utterance header small.is-wolf {
+  color: #8a2e1c;
+  border-color: rgba(138, 46, 28, 0.45);
+}
+
+.hall-utterance header small.is-fault {
+  color: #8c4a22;
+  border-color: rgba(140, 74, 34, 0.45);
+}
+
+.hall-utterance p {
+  margin: 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 106, 62, 0.45) transparent;
+}
+
+.hall-utterance.is-narration p {
+  text-align: center;
+  align-content: center;
+}
+
+.hall-utterance.is-fallback p {
+  font-style: italic;
+  color: #6f5338;
+}
+
+@keyframes hall-utterance-in {
+  from { opacity: 0; transform: translate(-50%, -46%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+@keyframes hall-utterance-in-mobile {
+  from { opacity: 0; transform: translate(-50%, -72%); }
+  to { opacity: 1; transform: translate(-50%, -78%); }
+}
+
 /* ---------- footer: caption + switch (below the painting, never over a player) ---------- */
 
 .hall-foot {
@@ -805,6 +921,26 @@
 /* ---------- small screens ---------- */
 
 @media (max-width: 900px) {
+  .hall-utterance {
+    width: 48% !important;
+    max-height: 38% !important;
+    /* Sit on the far half of the table so the near player's hood stays clear. */
+    transform: translate(-50%, -78%);
+    animation-name: hall-utterance-in-mobile;
+    font-size: 11.5px;
+    padding: 5px 7px 6px;
+  }
+
+  .hall-utterance header {
+    font-size: 13px;
+    margin-bottom: 3px;
+    padding-bottom: 3px;
+  }
+
+  .hall-utterance p {
+    line-height: 1.5;
+  }
+
   .hall-page {
     height: auto;
     min-height: 100dvh;

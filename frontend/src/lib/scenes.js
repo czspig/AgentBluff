@@ -20,6 +20,8 @@ export const SCENES = {
     figures: [
       [760, 140], [1165, 170], [1360, 330], [1310, 520], [835, 600], [380, 540], [270, 330], [560, 160],
     ],
+    // Parchment well on the inner tabletop [centerX, centerY, width, height]. Inside the rim, clear of hoods.
+    well: [836, 418, 400, 176],
   },
   night: {
     src: hallNight,
@@ -32,6 +34,7 @@ export const SCENES = {
     figures: [
       [836, 140], [1110, 175], [1310, 320], [1205, 500], [836, 570], [445, 500], [365, 310], [555, 175],
     ],
+    well: [836, 352, 440, 248],
   },
   day: {
     src: hallDay,
@@ -44,6 +47,7 @@ export const SCENES = {
     figures: [
       [536, 215], [715, 240], [880, 360], [820, 560], [530, 680], [210, 590], [150, 360], [330, 240],
     ],
+    well: [508, 448, 348, 208],
   },
 };
 

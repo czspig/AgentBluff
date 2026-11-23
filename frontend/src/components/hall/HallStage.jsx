@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { SCENES } from "../../lib/scenes.js";
 import { describe, playerLabel } from "../../lib/gameState.js";
 
@@ -10,6 +11,35 @@ const NIGHT_NARRATION = {
   witch: "预言家请闭眼。女巫请睁眼……",
   quiet: "夜色渐深，所有人都在静候天明。",
 };
+
+// What belongs in the middle of the table right now: the live speech, or the dawn / hunter
+// line that just replaced the night. Older lines stay in the case file; this is only the beat
+// a spectator is meant to be reading. Returns null while the next player is still composing,
+// so the crest stays visible and the previous speech does not linger under the wrong seat.
+export function tableCenter(state) {
+  const last = state.log.at(-1);
+  if (last?.type === "speech") {
+    const onTurn = state.currentSpeaker === last.actor;
+    const lastWords = !state.currentSpeaker && last.kind === "last_words";
+    if (onTurn || lastWords) {
+      return { key: `speech-${last.seq}`, tone: last.kind === "last_words" ? "is-last" : "is-speech", speech: last };
+    }
+  }
+  if (state.currentSpeaker) return null;
+  if (state.phase !== "day" && state.phase !== "vote") return null;
+  for (let i = state.log.length - 1; i >= 0; i -= 1) {
+    const event = state.log[i];
+    if (event.type === "death") continue;
+    if (event.type === "hunter_shot") {
+      return { key: `hunter-${event.seq}`, tone: "is-narration", who: "旁白", text: describe(event, state.bySeat) };
+    }
+    if (event.type === "announce" && event.day === state.day) {
+      return { key: `dawn-${event.seq}`, tone: "is-narration", who: "旁白", text: event.text };
+    }
+    break;
+  }
+  return null;
+}
 
 // The one line shown over the painting: who is talking / what just happened.
 export function caption(state, godView) {
@@ -74,12 +104,47 @@ function VoteLines({ scene, votes, bySeat }) {
   );
 }
 
+function TableCenter({ scene, card, state, godView }) {
+  const body = useRef(null);
+  useEffect(() => {
+    if (body.current) body.current.scrollTop = 0;
+  }, [card.key]);
+  if (!scene.well) return null;
+  const [cx, cy, w, h] = scene.well;
+  const player = card.speech ? state.bySeat[card.speech.actor] : null;
+  return (
+    <div
+      className={`hall-utterance ${card.tone}${card.speech?.fallback ? " is-fallback" : ""}`}
+      style={{ left: pct(cx, scene.w), top: pct(cy, scene.h), width: pct(w, scene.w), maxHeight: pct(h, scene.h) }}
+      role="status"
+      aria-live="polite"
+      aria-label={player ? `${player.name}的发言` : card.who}
+    >
+      <header>
+        {player ? (
+          <>
+            <span>{pad(player.seat)}</span>
+            <strong>{player.name}</strong>
+            {godView && <small className={player.camp === "wolf" ? "is-wolf" : ""}>{player.roleName}</small>}
+            {card.speech.kind === "last_words" && <small>遗言</small>}
+            {card.speech.fallback && <small className="is-fault">连线中断</small>}
+          </>
+        ) : (
+          <strong>{card.who}</strong>
+        )}
+      </header>
+      <p ref={body}>{card.speech ? card.speech.text : card.text}</p>
+    </div>
+  );
+}
+
 export default function HallStage({ state, sceneKey, godView, children }) {
   const scene = SCENES[sceneKey];
   const plateFont = (scene.plates[0][3] * 0.56 * 100) / scene.w;
 
   // Arrows stay up for the whole vote phase (including the exiled player's last words).
   const dayVotes = state.phase === "vote" ? state.votes.filter((v) => v.day === state.day && v.target) : [];
+  const center = tableCenter(state);
   const tally = {};
   for (const v of dayVotes) tally[v.target] = (tally[v.target] ?? 0) + 1;
 
@@ -106,6 +171,7 @@ export default function HallStage({ state, sceneKey, godView, children }) {
       })}
 
       <VoteLines scene={scene} votes={dayVotes} bySeat={state.bySeat} />
+      {center && <TableCenter key={center.key} scene={scene} card={center} state={state} godView={godView} />}
 
       {state.players.map((player) => {
         const [cx, cy, w, h] = scene.plates[player.seat - 1];

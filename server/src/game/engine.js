@@ -57,12 +57,14 @@ export function dealPlayers(rng = Math.random) {
 export class Game {
   // `readingDelay(text)` returns how long (ms) spectators need to read a line; the engine
   // waits that long after each speech so a live game is watchable. Defaults to no pause.
-  constructor({ players, ai, emit, signal, readingDelay = () => 0 }) {
+  // `nightBeatMs` is the same idea for night steps, which have no speech text of their own.
+  constructor({ players, ai, emit, signal, readingDelay = () => 0, nightBeatMs = 0 }) {
     this.players = players;
     this.ai = ai;
     this.emit = emit;
     this.signal = signal;
     this.readingDelay = readingDelay;
+    this.nightBeatMs = nightBeatMs;
     this.day = 0;
     this.publicLog = [];
     this.notes = Object.fromEntries(players.map((p) => [p.seat, []]));
@@ -147,6 +149,13 @@ export class Game {
     this.checkAborted();
   }
 
+  // Night beats are emitted back-to-back once a decision returns. Spectators only see a
+  // step for as long as the engine waits before the next emit, so hold each one here.
+  async holdNight() {
+    if (this.nightBeatMs > 0) await new Promise((r) => setTimeout(r, this.nightBeatMs));
+    this.checkAborted();
+  }
+
   note(seat, line) {
     this.notes[seat].push(`第${this.day}天：${line}`);
   }
@@ -210,6 +219,7 @@ export class Game {
   async night() {
     this.emit("phase", { day: this.day, phase: "night", label: `第 ${this.day} 夜` });
     this.log(`—— 第${this.day}夜 ——`);
+    await this.holdNight();
 
     // Wolves: sequential, the second wolf sees the first one's proposal and makes the final call.
     const wolves = this.alive.filter((p) => p.role === "wolf");
@@ -233,6 +243,7 @@ export class Game {
         thought: decision.thought ?? "",
         final: wolf === wolves[wolves.length - 1],
       });
+      await this.holdNight();
     }
     for (const wolf of wolves) this.note(wolf.seat, `狼队夜里决定袭击 ${this.label(this.bySeat(victimSeat))}。`);
 
@@ -256,6 +267,7 @@ export class Game {
           result: isWolf ? "wolf" : "good",
           thought: decision.thought ?? "",
         });
+        await this.holdNight();
       }
     }
 
@@ -296,6 +308,7 @@ export class Game {
         target: action === "save" ? savedSeat : action === "poison" ? poisonedSeat : victimSeat,
         thought: decision.thought ?? "",
       });
+      await this.holdNight();
     }
 
     const deaths = [];
@@ -317,6 +330,7 @@ export class Game {
     this.emit("announce", { text, deaths: sorted.map((d) => d.seat) });
     this.log(text);
     for (const d of sorted) this.kill(this.bySeat(d.seat), d.cause);
+    await this.holdNight();
 
     for (const d of sorted) {
       const dead = this.bySeat(d.seat);
@@ -342,12 +356,14 @@ export class Game {
     if (!shoot) {
       this.emit("hunter_shot", { actor: hunter.seat, target: null, thought: decision.thought ?? "" });
       this.log(`${this.label(hunter)} 亮出猎人身份，但选择不开枪。`);
+      await this.holdNight();
       return;
     }
     const target = this.pickTarget(decision.target, options);
     this.emit("hunter_shot", { actor: hunter.seat, target, thought: decision.thought ?? "" });
     this.log(`${this.label(hunter)} 亮出猎人身份，开枪带走了 ${this.label(this.bySeat(target))}。`);
     this.kill(this.bySeat(target), "hunter");
+    await this.holdNight();
   }
 
   async discussion() {
