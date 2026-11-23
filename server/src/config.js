@@ -36,11 +36,15 @@ export const config = {
     gamesPerDay: int(env.GAMES_PER_DAY, 50),
   },
   // Pause after each speech so spectators can read it: ms per character, clamped to [min, max].
-  // Set READING_MS_PER_CHAR=0 to run games at full speed.
+  // Set READING_MS_PER_CHAR=0 to run games at full speed (night beats follow, unless set explicitly).
   pacing: {
     msPerChar: int(env.READING_MS_PER_CHAR, 45),
     minMs: int(env.READING_MIN_MS, 2500),
     maxMs: int(env.READING_MAX_MS, 9000),
+    // Fixed hold after each night beat (天黑请闭眼, wolf / seer / witch, dawn, hunter).
+    // The watch page paints an event the moment it arrives, and these beats are not speeches,
+    // so the wait lives here rather than in the client. 0 skips it.
+    nightBeatMs: int(env.NIGHT_BEAT_MS, int(env.READING_MS_PER_CHAR, 45) === 0 ? 0 : 7000),
   },
   // Trust X-Forwarded-For only when running behind a reverse proxy (nginx).
   trustProxy: env.TRUST_PROXY === "1",

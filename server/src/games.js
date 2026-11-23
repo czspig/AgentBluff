@@ -60,10 +60,10 @@ export function createGameManager({ db, config }) {
 
     const controller = new AbortController();
     running.set(gameId, { controller });
-    const { msPerChar, minMs, maxMs } = config.pacing;
+    const { msPerChar, minMs, maxMs, nightBeatMs } = config.pacing;
     const readingDelay = (text) =>
       msPerChar > 0 ? Math.min(maxMs, Math.max(minMs, String(text).length * msPerChar)) : 0;
-    const game = new Game({ players, ai, emit, signal: controller.signal, readingDelay });
+    const game = new Game({ players, ai, emit, signal: controller.signal, readingDelay, nightBeatMs });
 
     game
       .run()
